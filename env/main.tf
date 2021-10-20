@@ -37,6 +37,14 @@ variable "database_user_password" {
   default = "4-v3ry-53cr37-p455w0rd"
 }
 
+variable "automation_account_name" {
+  default = "autoacc"
+}
+
+variable "automation_runbook_name" {
+  default = "autorunbook"
+}
+
 resource "azurerm_resource_group" "rg" {
   name = var.resource_group_name
   location = var.resources_location
@@ -83,3 +91,27 @@ resource "null_resource" "database_setup" {
     command = "sqlcmd -S ${azurerm_mssql_server.dbserver.name}.database.windows.net -d ${azurerm_mssql_database.database.name} -U ${var.database_user_name} -P ${var.database_user_password} -i ../scripts/create-table.sql"
   }
 }
+
+resource "azurerm_automation_account" "acc" {
+  name = format("%s%s", azurerm_resource_group.rg.name, var.automation_account_name)
+  resource_group_name = azurerm_resource_group.rg.name
+  location = azurerm_resource_group.rg.location
+  sku_name = "Basic"
+}
+
+resource "azurerm_automation_runbook" "runbook" {
+  name = "Get-AzureVMTutorial" # MUST MATCH THE SCRIPT`s
+  resource_group_name = azurerm_resource_group.rg.name
+  location = azurerm_resource_group.rg.location
+  automation_account_name = azurerm_automation_account.acc.name
+  log_verbose = "true"
+  log_progress = "true"
+  runbook_type = "PowerShellWorkflow"
+  publish_content_link {
+    uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/c4935ffb69246a6058eb24f54640f53f69d3ac9f/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
+  }
+}
+
+# https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/automation_schedule
+
+# https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/automation_job_schedule
