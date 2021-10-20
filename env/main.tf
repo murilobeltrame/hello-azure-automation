@@ -115,6 +115,14 @@ resource "azurerm_automation_account" "acc" {
   sku_name            = "Basic"
 }
 
+resource "azurerm_automation_credential" "acc_credential" {
+  name                    = "dbcredential"
+  resource_group_name     = azurerm_resource_group.rg.name
+  automation_account_name = azurerm_automation_account.acc.name
+  username                = var.database_user_name
+  password                = var.database_user_password
+}
+
 data "local_file" "runbook_script" {
   filename = "../scripts/run-job.ps1"
 }
