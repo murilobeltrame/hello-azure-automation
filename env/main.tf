@@ -45,6 +45,10 @@ variable "automation_runbook_name" {
   default = "autorunbook"
 }
 
+variable "runbook_script_file_name" {
+  default = "run-job"
+}
+
 resource "azurerm_resource_group" "rg" {
   name     = var.resource_group_name
   location = var.resources_location
@@ -111,17 +115,19 @@ resource "azurerm_automation_account" "acc" {
   sku_name            = "Basic"
 }
 
+data "local_file" "runbook_script" {
+  filename = "../scripts/run-job.ps1"
+}
+
 resource "azurerm_automation_runbook" "runbook" {
-  name                    = "Get-AzureVMTutorial" # MUST MATCH THE SCRIPT`s
+  name                    = var.runbook_script_file_name # MUST MATCH THE SCRIPT`s
   resource_group_name     = azurerm_resource_group.rg.name
   location                = azurerm_resource_group.rg.location
   automation_account_name = azurerm_automation_account.acc.name
   log_verbose             = "true"
   log_progress            = "true"
   runbook_type            = "PowerShellWorkflow"
-  publish_content_link {
-    uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/c4935ffb69246a6058eb24f54640f53f69d3ac9f/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
-  }
+  content                 = data.local_file.runbook_script.content
 }
 
 resource "azurerm_automation_schedule" "runbook_schedule" {
