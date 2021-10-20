@@ -1,20 +1,25 @@
-DECLARE @size INT
-SET @size = 1000
-
-
-DECLARE @i INT
+CREATE OR ALTER PROCEDURE UspExampleProc
+AS
 BEGIN
-	SET @i = 1;
-	WHILE @i <= @size
+
+	DECLARE @size INT
+	SET @size = 1000
+
+
+	DECLARE @i INT
 	BEGIN
-		INSERT INTO Example ([Data])
-		VALUES (NEWID());
-		SET @i = @i + 1;
+		SET @i = 1;
+		WHILE @i <= @size
+		BEGIN
+			INSERT INTO Example ([Data])
+			VALUES (NEWID());
+			SET @i = @i + 1;
+		END
 	END
-END
 
-DELETE FROM Example WHERE Id NOT IN (
-	SELECT TOP (@size) Id FROM Example ORDER BY [Data] DESC
-);
+	DELETE FROM Example WHERE Id NOT IN (
+		SELECT TOP (@size) Id FROM Example ORDER BY [Data] DESC
+	);
 
-SELECT * FROM Example ORDER BY Stamp DESC;
+	SELECT * FROM Example ORDER BY Stamp DESC;
+END;
